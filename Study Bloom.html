@@ -1,0 +1,793 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>little study garden</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Fredoka:wght@400;500;600&family=Silkscreen&display=swap">
+<style>
+/* Layout: arcade-window garden on the left (isometric floating plot), HUD + syllabus checklist on the right; stacks on phones. */
+:root{
+  --bg:#FFE6F3; --bg2:#E6F2FF; --surface:#FFFFFF; --surface2:#FFF3FA;
+  --ink:#4B2142; --ink2:#85587A; --line:#4B2142; --sh:#4B2142;
+  --pink:#FF8FC8; --pink-deep:#FF5FAE; --btn-ink:#4B2142; --focus:#C23C8A;
+  --lav:#D9C8FF; --sky:#BFE5FF; --mint:#C9F5D9; --butter:#FFF1A8;
+  --sky1:#CDEBFF; --sky2:#FFD9EC;
+  --grass1:#BFEFCB; --grass2:#ADE6BE; --side1:#FF9CCB; --side2:#EC7DB7; --blob:#4B2142;
+  --t1:#FFC9E3; --t2:#DCCBFF; --t3:#BFE5FF; --t4:#C4F2D4; --t5:#FFF0A8; --t6:#FFD3BC; --t7:#B8F0E8; --t8:#E3F5B0;
+  --display:'Bagel Fat One','Chalkboard SE','Comic Sans MS',cursive,sans-serif;
+  --body:'Fredoka','Trebuchet MS',system-ui,sans-serif;
+  --hud:'Silkscreen','Courier New',monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#26102E; --bg2:#1A1640; --surface:#3A1B47; --surface2:#32173E;
+  --ink:#FFE6F5; --ink2:#D7A9CB; --line:#C77DB8; --sh:#12061A;
+  --pink:#FF8FC8; --pink-deep:#FF5FAE; --btn-ink:#3A1236; --focus:#FFB3DC;
+  --lav:#7C62C9; --sky:#4E7FB8; --mint:#3C8466; --butter:#B59B2E;
+  --sky1:#3A2A74; --sky2:#5A2760;
+  --grass1:#3F8068; --grass2:#38745F; --side1:#B64E92; --side2:#8F3B75; --blob:#0A0210;
+  --t1:#B2518A; --t2:#7C62C9; --t3:#4E7FB8; --t4:#3C8466; --t5:#A8922F; --t6:#B8694C; --t7:#2F8680; --t8:#7D9A3A;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#26102E; --bg2:#1A1640; --surface:#3A1B47; --surface2:#32173E;
+  --ink:#FFE6F5; --ink2:#D7A9CB; --line:#C77DB8; --sh:#12061A;
+  --pink:#FF8FC8; --pink-deep:#FF5FAE; --btn-ink:#3A1236; --focus:#FFB3DC;
+  --lav:#7C62C9; --sky:#4E7FB8; --mint:#3C8466; --butter:#B59B2E;
+  --sky1:#3A2A74; --sky2:#5A2760;
+  --grass1:#3F8068; --grass2:#38745F; --side1:#B64E92; --side2:#8F3B75; --blob:#0A0210;
+  --t1:#B2518A; --t2:#7C62C9; --t3:#4E7FB8; --t4:#3C8466; --t5:#A8922F; --t6:#B8694C; --t7:#2F8680; --t8:#7D9A3A;
+  color-scheme:dark}
+
+*{box-sizing:border-box}
+body{
+  background:var(--bg);
+  background-image:linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);
+  background-attachment:fixed;
+  color:var(--ink); font-family:var(--body); font-size:15px; line-height:1.45;
+  padding-block:18px 56px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.app{max-width:1200px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+svg{display:block}
+
+/* header */
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+.brand{min-width:0}
+h1{margin:0;font:400 clamp(34px,6vw,54px)/1 var(--display);color:var(--pink-deep);letter-spacing:.5px;
+  text-shadow:0 3px 0 var(--sh),2px 0 0 var(--sh),-2px 0 0 var(--sh),0 -2px 0 var(--sh)}
+.tag{margin:8px 0 0;font:400 11px var(--hud);letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+
+.btn{font-weight:600;font-size:14px;color:var(--ink);background:var(--surface);border:2px solid var(--line);
+  border-radius:999px;padding:7px 16px;box-shadow:0 3px 0 var(--sh);transition:transform .08s,box-shadow .08s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 4px 0 var(--sh)}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--sh)}
+.btn.pink{background:linear-gradient(#FFB4DA,var(--pink));color:var(--btn-ink)}
+.btn.small{padding:4px 12px;font-size:13px}
+.btn.danger{background:var(--surface2)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+.banner{display:flex;flex-wrap:wrap;align-items:center;gap:10px;justify-content:space-between;
+  background:var(--butter);color:#4B2142;border:2px dashed var(--line);border-radius:16px;padding:8px 14px;font-weight:500}
+.banner .btn{color:#4B2142}
+
+/* garden chips */
+.tabs{display:flex;gap:10px;overflow-x:auto;padding:4px 4px 10px;scrollbar-width:thin}
+.chip-t{flex:none;display:flex;align-items:center;gap:8px;font-weight:600;background:var(--surface);color:var(--ink);
+  border:2px solid var(--line);border-radius:999px;padding:6px 14px;box-shadow:0 3px 0 var(--sh);white-space:nowrap}
+.chip-t .n{font:400 10px var(--hud);color:var(--ink2);letter-spacing:.04em}
+.chip-t[aria-current="true"]{background:linear-gradient(#FFB4DA,var(--pink));color:var(--btn-ink)}
+.chip-t[aria-current="true"] .n{color:var(--btn-ink)}
+.chip-t.all{background:linear-gradient(90deg,var(--lav),var(--sky));color:var(--btn-ink)}
+.chip-t.all .n{color:var(--btn-ink)}
+.chip-t.all[aria-current="true"]{background:linear-gradient(90deg,#FFB4DA,#C3AEFF,#9ED8FF)}
+.chip-t.add{border-style:dashed;box-shadow:none;background:transparent}
+
+.main{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:18px;align-items:start}
+@media (max-width:920px){.main{grid-template-columns:minmax(0,1fr)}}
+
+/* window */
+.win{border:2.5px solid var(--line);border-radius:22px;background:var(--surface);box-shadow:0 6px 0 var(--sh);overflow:hidden;min-width:0}
+.win-bar{display:flex;align-items:center;gap:10px;padding:8px 14px;color:#4B2142;
+  background:linear-gradient(90deg,#FFB4DA,#CDB9FF 55%,#A9DDFF);border-bottom:2.5px solid var(--line)}
+.dots{display:flex;gap:6px}
+.dots i{width:12px;height:12px;border-radius:50%;background:#fff;border:2px solid #4B2142;display:block}
+.win-title{font:400 12px var(--hud);letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1}
+.stage{position:relative;background:linear-gradient(180deg,var(--sky1),var(--sky2));
+  background-image:radial-gradient(circle,rgba(255,255,255,.55) 1.4px,transparent 1.6px),linear-gradient(180deg,var(--sky1),var(--sky2));
+  background-size:26px 26px,100% 100%}
+.stage svg.plot{width:100%;height:auto;max-height:74vh;margin:0 auto}
+.empty-note{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;background:var(--surface);
+  border:2.5px solid var(--line);border-radius:18px;padding:14px 18px;box-shadow:0 4px 0 var(--sh);max-width:min(320px,86%)}
+.empty-note b{display:block;font:400 22px var(--display);color:var(--pink-deep);margin-bottom:4px}
+.empty-note .actions{justify-content:center;margin-top:10px}
+
+/* svg bits */
+.g1{fill:var(--grass1)} .g2{fill:var(--grass2)}
+.side-l{fill:var(--side1)} .side-r{fill:var(--side2)}
+.slab-line{stroke:var(--line);stroke-width:3;stroke-linejoin:round;fill:none}
+.tile-edge{stroke:rgba(255,255,255,.4);stroke-width:1.5}
+.hit{fill:transparent;stroke:transparent;stroke-width:3;pointer-events:all}
+.tile{cursor:pointer;outline:none}
+.tile:hover .hit,.tile.hl .hit{stroke:var(--pink-deep);stroke-width:3.5}
+.tile.sel .hit{stroke:var(--pink-deep);stroke-width:5}
+.tile:focus-visible .hit{stroke:var(--focus);stroke-width:5}
+.pad{opacity:.95}
+.sway{transform-origin:0 0;animation:sway 3.6s ease-in-out infinite alternate}
+.pop{transform-origin:0 0;animation:pop .7s cubic-bezier(.3,1.7,.5,1)}
+.spk{fill:#FFF27A;stroke:#4B2142;stroke-width:1.2;animation:spk .9s ease-out forwards}
+@keyframes sway{from{transform:rotate(-2.2deg)}to{transform:rotate(2.2deg)}}
+@keyframes pop{from{transform:scale(.1)}to{transform:scale(1)}}
+@keyframes spk{from{transform:translate(0,0) scale(.4);opacity:1}to{transform:translate(var(--dx),var(--dy)) scale(1.3);opacity:0}}
+@media (prefers-reduced-motion:reduce){.sway,.pop,.spk{animation:none}.spk{opacity:0}}
+
+/* bubble */
+.bubble{position:absolute;z-index:5;width:min(280px,calc(100% - 16px));background:var(--surface);color:var(--ink);
+  border:2.5px solid var(--line);border-radius:18px;box-shadow:0 5px 0 var(--sh);padding:12px 14px}
+.bubble .x{position:absolute;right:8px;top:6px;width:28px;height:28px;border-radius:50%;border:2px solid var(--line);background:var(--surface2);line-height:1;padding:0;font-size:16px}
+.b-top{display:flex;gap:10px;align-items:center;padding-right:26px}
+.b-ico{width:54px;height:64px;flex:none;background:var(--surface2);border-radius:14px;border:2px solid var(--line)}
+.b-name{font-weight:600;font-size:16px;line-height:1.2;overflow-wrap:anywhere}
+.b-sub{font-size:12.5px;color:var(--ink2);overflow-wrap:anywhere}
+.pill{display:inline-block;margin:8px 0 2px;font:400 10px var(--hud);letter-spacing:.05em;text-transform:uppercase;border:2px solid var(--line);border-radius:999px;padding:2px 9px;background:var(--surface2)}
+.pill.on{background:var(--mint);color:#2A5A3F}
+.b-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.picker{display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:6px;margin-top:10px;max-height:160px;overflow:auto;padding:2px}
+.pk{border:2px solid var(--line);border-radius:12px;background:var(--surface2);padding:2px}
+.pk[aria-pressed="true"]{background:var(--pink);box-shadow:0 2px 0 var(--sh)}
+.pk svg{width:100%;height:auto}
+
+/* aside */
+aside{display:flex;flex-direction:column;gap:14px;min-width:0}
+.card{background:var(--surface);border:2.5px solid var(--line);border-radius:20px;box-shadow:0 5px 0 var(--sh);padding:14px}
+.hud-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px}
+.lv{font:400 13px var(--hud);letter-spacing:.06em;background:var(--butter);color:#4B2142;border:2px solid var(--line);border-radius:8px;padding:2px 8px}
+.rank{font:400 22px var(--display);color:var(--pink-deep);text-shadow:0 2px 0 var(--sh)}
+.bar{height:22px;border:2.5px solid var(--line);border-radius:999px;background:var(--surface2);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:999px;min-width:0;background:repeating-linear-gradient(-45deg,#FF8FC8 0 10px,#FFB4DA 10px 20px);transition:width .5s}
+.hud-n{margin-top:8px;font-size:14px;color:var(--ink2)}
+.hud-n b{font:400 20px var(--display);color:var(--ink)}
+.gh{margin:4px 2px 0;font:400 11px var(--hud);letter-spacing:.07em;text-transform:uppercase;color:var(--ink2)}
+.subjs{display:flex;flex-direction:column;gap:10px}
+.sj{background:var(--surface);border:2.5px solid var(--line);border-radius:16px;box-shadow:0 4px 0 var(--sh);overflow:hidden}
+.sj-h{width:100%;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:2px 10px;align-items:center;text-align:left;background:none;border:0;padding:10px 12px}
+.chip{width:16px;height:16px;border-radius:6px;border:2px solid var(--line);display:block;grid-row:1/3}
+.sn{font-weight:600;overflow-wrap:anywhere}
+.sc{font:400 11px var(--hud);color:var(--ink2);justify-self:end}
+.mdots{grid-column:2/4;display:flex;gap:5px;flex-wrap:wrap}
+.dot{width:12px;height:12px;border-radius:50%;border:2px solid var(--line);background:transparent;display:block}
+.dot.on{background:var(--c)}
+.us{list-style:none;margin:0;padding:0 8px 8px;display:none;flex-direction:column;gap:5px}
+.sj.open .us{display:flex}
+.ur{width:100%;display:flex;gap:10px;align-items:center;text-align:left;background:var(--surface2);border:2px solid var(--line);border-radius:12px;padding:6px 10px}
+.ck{width:20px;height:20px;border-radius:7px;border:2px solid var(--line);background:var(--surface);flex:none;display:grid;place-items:center}
+.ur[aria-pressed="true"] .ck{background:var(--pink)}
+.ur[aria-pressed="true"] .ck::after{content:"";width:6px;height:10px;border:solid var(--btn-ink);border-width:0 3px 3px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.ur[aria-pressed="true"] span:last-child{color:var(--ink2);text-decoration:line-through;text-decoration-thickness:1.5px}
+.ur span:last-child{overflow-wrap:anywhere;min-width:0}
+.none{color:var(--ink2);font-size:14px;margin:0}
+
+/* modal */
+.overlay{position:fixed;inset:0;z-index:50;background:rgba(40,12,44,.55);display:flex;align-items:center;justify-content:center;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.sheet{width:100%;max-width:760px;max-height:100%;display:flex;flex-direction:column;background:var(--surface);border:2.5px solid var(--line);border-radius:22px;box-shadow:0 6px 0 var(--sh);overflow:hidden}
+.sheet .win-bar{flex:none}
+.mtabs{display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px 0}
+.mt{border:2px solid var(--line);border-radius:999px;background:var(--surface2);padding:4px 14px;font-weight:600;font-size:14px}
+.mt[aria-selected="true"]{background:var(--pink);color:var(--btn-ink);box-shadow:0 3px 0 var(--sh)}
+.mbody{padding:14px 16px 18px;overflow:auto;min-height:0;display:flex;flex-direction:column;gap:14px}
+.mbody h3{margin:0;font:400 20px var(--display);color:var(--pink-deep);text-shadow:0 2px 0 var(--sh)}
+.mbody p{margin:0;color:var(--ink2)}
+.field{display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:13px}
+input[type=text],input[type=number],textarea{background:var(--surface2);border:2px solid var(--line);border-radius:12px;padding:7px 11px;width:100%;min-width:0}
+textarea{resize:vertical;min-height:84px;font-size:13px}
+.sjm{border:2px solid var(--line);border-radius:16px;padding:10px;display:flex;flex-direction:column;gap:8px;background:var(--surface2)}
+.row{display:flex;gap:8px;align-items:center}
+.row>input{flex:1}
+.addrow{display:grid;grid-template-columns:minmax(0,1fr) 90px;gap:8px}
+@media (max-width:520px){.addrow{grid-template-columns:minmax(0,1fr)}}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px}
+.fk{border:2px solid var(--line);border-radius:14px;background:var(--surface2);padding:6px 4px;text-align:center;font-size:12px;font-weight:500}
+.fk svg{width:44px;height:56px;margin:0 auto}
+.fk[aria-pressed="true"]{background:var(--pink);color:var(--btn-ink);box-shadow:0 3px 0 var(--sh)}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;font-size:13px;min-width:420px}
+th,td{border:2px solid var(--line);padding:4px 10px;text-align:left;white-space:nowrap}
+th{background:var(--lav);color:#4B2142;font-family:var(--hud);font-size:11px;font-weight:400;letter-spacing:.04em}
+.msg{background:var(--mint);color:#2A5A3F;border:2px solid var(--line);border-radius:12px;padding:8px 12px;font-weight:500}
+.msg.warn{background:var(--butter);color:#4B2142}
+.filebtn{display:inline-flex}
+.filebtn input{position:absolute;opacity:0;width:1px;height:1px}
+.filebtn:focus-within{outline:3px solid var(--focus);outline-offset:2px;border-radius:999px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:80;
+  background:var(--ink);color:var(--bg);padding:8px 18px;border-radius:999px;font-weight:600;box-shadow:0 4px 0 var(--sh);max-width:90%}
+</style>
+
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <h1>Study Bloom</h1>
+      <p class="tag">one flower for every unit you finish</p>
+    </div>
+    <div class="actions">
+      <button class="btn" id="bManage" type="button">Edit syllabus</button>
+      <button class="btn" id="bFlowers" type="button">Flower picker</button>
+      <button class="btn pink" id="bImport" type="button">Import sheet</button>
+    </div>
+  </header>
+  <div id="banner" class="banner" hidden></div>
+  <nav class="tabs" id="tabs" aria-label="Gardens"></nav>
+  <main class="main">
+    <section class="win" aria-label="Garden">
+      <div class="win-bar">
+        <span class="dots"><i></i><i></i><i></i></span>
+        <span class="win-title" id="winTitle">garden.exe</span>
+        <svg width="16" height="16" viewBox="-8 -8 16 16" aria-hidden="true"><path d="M0 -7 L2 -2 L7 0 L2 2 L0 7 L-2 2 L-7 0 L-2 -2Z" fill="#fff" stroke="#4B2142" stroke-width="1.4" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="stage" id="stage"></div>
+    </section>
+    <aside id="aside" aria-label="Progress and syllabus"></aside>
+  </main>
+</div>
+
+<div class="overlay" id="modal" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <div class="win-bar">
+      <span class="dots"><i></i><i></i><i></i></span>
+      <span class="win-title" id="mTitle">settings.exe</span>
+      <button class="btn small" id="mClose" type="button">Close</button>
+    </div>
+    <div class="mtabs" id="mTabs" role="tablist"></div>
+    <div class="mbody" id="mBody"></div>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+(function(){
+'use strict';
+var KEY='study-bloom-v1';
+function $(s,r){return (r||document).querySelector(s);}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+var uidn=0;
+function uid(){return Date.now().toString(36)+(uidn++).toString(36)+Math.random().toString(36).slice(2,5);}
+
+/* ---------- flowers ---------- */
+var OL='#7A3B6B';
+var KINDS={
+  tulipPink:{l:'Pink tulip',f:'tulip',c:'#FF8FC2',d:'#FFB9DB'},
+  tulipLilac:{l:'Lilac tulip',f:'tulip',c:'#B79BFF',d:'#D7C8FF'},
+  tulipPeach:{l:'Peach tulip',f:'tulip',c:'#FFA98A',d:'#FFD0BC'},
+  tulipYellow:{l:'Yellow tulip',f:'tulip',c:'#FFD65E',d:'#FFEC9E'},
+  daisy:{l:'Daisy',f:'daisy',c:'#FFFFFF',d:'#FFD84D'},
+  sunflower:{l:'Sunflower',f:'sunflower',c:'#FFC933',d:'#7A4A2B'},
+  rose:{l:'Rose',f:'rose',c:'#FF5C9E',d:'#FF8FBE'},
+  sakura:{l:'Cherry blossom',f:'sakura',c:'#FFC2DD',d:'#FF8FBE'},
+  lily:{l:'Lily',f:'lily',c:'#FFF2F8',d:'#FF9F7A'},
+  lavender:{l:'Lavender',f:'lavender',c:'#A98BFF',d:'#D2C2FF'},
+  hibiscus:{l:'Hibiscus',f:'hibiscus',c:'#FF6FA5',d:'#FFE06B'},
+  peony:{l:'Peony',f:'peony',c:'#FFB0D0',d:'#FF86B6'},
+  poppy:{l:'Poppy',f:'poppy',c:'#FF7A6B',d:'#4B2142'},
+  forget:{l:'Forget-me-not',f:'forget',c:'#8EC9FF',d:'#FFE56B'}
+};
+var ORDER=['tulipPink','daisy','sakura','tulipLilac','rose','sunflower','lavender','tulipPeach','peony','poppy','lily','hibiscus','forget','tulipYellow'];
+var TULIPS=['tulipPink','tulipLilac','tulipPeach','tulipYellow'];
+function st(w){return 'stroke="'+OL+'" stroke-width="'+(w||1.4)+'" stroke-linejoin="round"';}
+function ring(n,rx,ry,cy,fill,rot){var s='';rot=rot||0;for(var i=0;i<n;i++){s+='<ellipse cx="0" cy="'+cy+'" rx="'+rx+'" ry="'+ry+'" fill="'+fill+'" '+st(1.2)+' transform="rotate('+(rot+i*360/n).toFixed(1)+')"/>';}return s;}
+function circ(r,fill,x,y,w){return '<circle cx="'+(x||0)+'" cy="'+(y||0)+'" r="'+r+'" fill="'+fill+'" '+st(w||1.2)+'/>';}
+var STEM='<path d="M0 0 C-3 -20 3 -42 0 -62" fill="none" stroke="'+OL+'" stroke-width="7" stroke-linecap="round"/><path d="M0 0 C-3 -20 3 -42 0 -62" fill="none" stroke="#5CCB8B" stroke-width="4" stroke-linecap="round"/>';
+var LEAF='<path d="M0 -14 C-6 -32 -26 -34 -30 -24 C-26 -12 -10 -8 0 -14Z" fill="#7BE0A5" '+st(1.5)+'/>';
+var LEAVES=LEAF+'<g transform="translate(0 -14) scale(-1 1)">'+LEAF+'</g>';
+function head(inner){return '<g transform="translate(0 -66)">'+inner+'</g>';}
+var FAM={
+  tulip:function(K){
+    var lp='<path d="M-15 -80 C-17 -68 -12 -58 0 -56 C-2 -68 -6 -80 -8 -92 C-12 -90 -15 -86 -15 -80Z" fill="'+K.d+'" '+st()+'/>';
+    return STEM+LEAVES+lp+'<g transform="scale(-1 1)">'+lp+'</g>'+
+      '<path d="M-10 -80 C-12 -66 -6 -57 0 -56 C6 -57 12 -66 10 -80 C8 -90 3 -96 0 -98 C-3 -96 -8 -90 -10 -80Z" fill="'+K.c+'" '+st()+'/>';
+  },
+  daisy:function(K){return STEM+LEAVES+head(ring(14,4.6,11,-13,K.c)+circ(8,K.d));},
+  sunflower:function(K){
+    var dots='';for(var i=0;i<9;i++){var a=i/9*6.283;dots+='<circle cx="'+(Math.cos(a)*7).toFixed(1)+'" cy="'+(Math.sin(a)*7).toFixed(1)+'" r="1.3" fill="#B7794F"/>';}
+    return STEM+LEAVES+head(ring(18,4.2,12,-19,'#FFB62E',10)+ring(18,4.2,12,-18,K.c)+circ(13,K.d)+dots+'<circle r="2" fill="#B7794F"/>');
+  },
+  rose:function(K){
+    return STEM+LEAVES+head(circ(21,K.c)+circ(15,K.d)+circ(9,K.c)+
+      '<path d="M-6 1 C-7 -6 6 -7 6 0 C6 5 -3 6 -3 1" fill="none" '+st(1.4)+' stroke-linecap="round"/>'+
+      '<path d="M-14 -8 C-10 -16 4 -18 12 -10" fill="none" '+st(1.2)+' stroke-linecap="round"/>');
+  },
+  sakura:function(K){
+    var p='<path d="M0 0 C-10 -6 -12 -20 -5 -22 C-2 -22 0 -19 0 -17 C0 -19 2 -22 5 -22 C12 -20 10 -6 0 0Z" fill="'+K.c+'" '+st(1.3)+'/>';
+    var s='',i;for(i=0;i<5;i++){s+='<g transform="rotate('+(i*72)+')">'+p+'</g>';}
+    var st2='';for(i=0;i<6;i++){var a=i/6*6.283;st2+='<circle cx="'+(Math.cos(a)*6).toFixed(1)+'" cy="'+(Math.sin(a)*6).toFixed(1)+'" r="1.4" fill="'+K.d+'"/>';}
+    return STEM+LEAVES+head(s+circ(3.5,K.d)+st2);
+  },
+  lily:function(K){
+    var p='<path d="M0 0 C-8 -9 -7 -22 0 -32 C7 -22 8 -9 0 0Z" fill="'+K.c+'" '+st(1.3)+'/><path d="M0 -4 L0 -22" stroke="'+K.d+'" stroke-width="2" stroke-linecap="round"/>';
+    var s='',i;for(i=0;i<3;i++){s+='<g transform="rotate('+(30+i*120)+')">'+p+'</g>';}
+    for(i=0;i<3;i++){s+='<g transform="rotate('+(i*120)+')">'+p+'</g>';}
+    var d='';for(i=0;i<6;i++){var a=i/6*6.283;d+='<circle cx="'+(Math.cos(a)*7).toFixed(1)+'" cy="'+(Math.sin(a)*7).toFixed(1)+'" r="2" fill="'+K.d+'" '+st(.8)+'/>';}
+    return STEM+LEAVES+head(s+d);
+  },
+  lavender:function(K){
+    var s='<path d="M0 0 C-2 -30 2 -60 0 -100" fill="none" stroke="'+OL+'" stroke-width="6.5" stroke-linecap="round"/><path d="M0 0 C-2 -30 2 -60 0 -100" fill="none" stroke="#5CCB8B" stroke-width="3.5" stroke-linecap="round"/>';
+    s+='<g transform="translate(0 6)">'+LEAF+'</g><g transform="translate(0 -4) scale(-1 1)">'+LEAF+'</g>';
+    for(var k=0;k<9;k++){var y=-52-k*5.4,f=k%2?K.d:K.c;
+      s+='<ellipse cx="-4.5" cy="'+y+'" rx="4.4" ry="5.4" fill="'+f+'" '+st(1.1)+' transform="rotate(-18 -4.5 '+y+')"/><ellipse cx="4.5" cy="'+(y-2.5)+'" rx="4.4" ry="5.4" fill="'+f+'" '+st(1.1)+' transform="rotate(18 4.5 '+(y-2.5)+')"/>';}
+    return s+'<ellipse cx="0" cy="-104" rx="3.6" ry="5.4" fill="'+K.c+'" '+st(1.1)+'/>';
+  },
+  hibiscus:function(K){
+    return STEM+LEAVES+head(ring(5,12,15,-13,K.c)+circ(5.5,'#D63B7C')+
+      '<path d="M0 0 C4 -8 8 -14 10 -22" fill="none" stroke="#FFE06B" stroke-width="2.4" stroke-linecap="round"/>'+
+      circ(2.6,K.d,10,-22,1)+circ(2.6,K.d,6.5,-19,1)+circ(2.6,K.d,13,-18.5,1));
+  },
+  peony:function(K){
+    return STEM+LEAVES+head(ring(9,9,11.5,-14,K.c)+ring(7,8,9,-9,K.d,20)+circ(9,K.c)+circ(5,K.d)+
+      '<path d="M-6 -2 C-3 -7 3 -7 6 -2" fill="none" '+st(1.1)+' stroke-linecap="round"/>');
+  },
+  poppy:function(K){
+    var d='';for(var i=0;i<8;i++){var a=i/8*6.283;d+='<circle cx="'+(Math.cos(a)*9).toFixed(1)+'" cy="'+(Math.sin(a)*9).toFixed(1)+'" r="1.4" fill="#2A0E2A"/>';}
+    return STEM+LEAVES+head(ring(4,13,14.5,-9,K.c,45)+circ(6.5,K.d)+d);
+  },
+  forget:function(K){
+    function mini(x,y,s){var p='';for(var i=0;i<5;i++){p+='<circle cx="0" cy="-7.5" r="6.3" fill="'+K.c+'" '+st(1.1)+' transform="rotate('+(i*72)+')"/>';}
+      return '<g transform="translate('+x+' '+y+') scale('+s+')">'+p+circ(3.6,K.d,0,0,1)+'</g>';}
+    var br='';[[-17,-56],[2,-74],[18,-52]].forEach(function(p){
+      br+='<path d="M0 -38 Q'+(p[0]*0.4)+' '+(p[1]+10)+' '+p[0]+' '+(p[1]+4)+'" fill="none" stroke="'+OL+'" stroke-width="5" stroke-linecap="round"/><path d="M0 -38 Q'+(p[0]*0.4)+' '+(p[1]+10)+' '+p[0]+' '+(p[1]+4)+'" fill="none" stroke="#5CCB8B" stroke-width="2.6" stroke-linecap="round"/>';});
+    return '<path d="M0 0 L0 -38" stroke="'+OL+'" stroke-width="7" stroke-linecap="round"/><path d="M0 0 L0 -38" stroke="#5CCB8B" stroke-width="4" stroke-linecap="round"/>'+LEAVES+br+mini(-17,-56,.85)+mini(2,-74,1)+mini(18,-52,.8);
+  }
+};
+function flowerBody(k){var K=KINDS[k]||KINDS.tulipPink;return FAM[K.f](K);}
+function flowerIcon(k){return '<svg viewBox="-36 -108 72 114" aria-hidden="true">'+flowerBody(k)+'</svg>';}
+var SPROUT='<ellipse cx="0" cy="2" rx="16" ry="6" fill="#B07A5B" opacity=".6"/><path d="M0 0 L0 -16" fill="none" stroke="'+OL+'" stroke-width="5.5" stroke-linecap="round"/><path d="M0 0 L0 -16" fill="none" stroke="#5CCB8B" stroke-width="3" stroke-linecap="round"/><path d="M0 -14 C-4 -26 -18 -26 -20 -19 C-17 -11 -6 -9 0 -14Z" fill="#7BE0A5" '+st(1.4)+'/><g transform="scale(-1 1)"><path d="M0 -14 C-4 -26 -18 -26 -20 -19 C-17 -11 -6 -9 0 -14Z" fill="#7BE0A5" '+st(1.4)+'/></g>';
+
+/* ---------- state ---------- */
+var S={gardens:[],view:'all',sample:false};
+var UI={sel:null,pop:null,open:{},tab:'garden',pickerOpen:false,imp:null,armed:null};
+
+function newGarden(name,picks){return {id:uid(),name:name,picks:(picks||ORDER).slice(),subjects:[],seq:0};}
+function addUnit(g,s,name,done,kind){var u={id:uid(),name:name,done:!!done,kind:kind||null,n:g.seq++};s.units.push(u);return u;}
+function makeSample(){
+  function mk(name,subs,picks){var g=newGarden(name,picks);g.sample=true;
+    subs.forEach(function(x){var s={id:uid(),name:x[0],units:[]};g.subjects.push(s);x[1].forEach(function(un,i){addUnit(g,s,un,i<x[2]);});});return g;}
+  return [
+    mk('First degree',[
+      ['Calculus',['Limits and continuity','Differentiation','Integration','Infinite series'],3],
+      ['Physics',['Mechanics','Waves and optics','Thermodynamics','Electromagnetism'],2],
+      ['Data structures',['Arrays and lists','Trees','Graphs','Hashing'],1],
+      ['Technical writing',['Report structure','Citations','Editing','Presenting'],0]
+    ]),
+    mk('Second degree',[
+      ['Contract law',['Formation','Terms','Breach','Remedies'],2],
+      ['Economics',['Demand and supply','Market structures','Macro basics','Trade'],1],
+      ['Psychology',['Memory','Learning','Development','Research methods'],0]
+    ],['tulipPink','tulipLilac','tulipPeach','tulipYellow','peony','lily'])
+  ];
+}
+function load(){
+  try{var raw=localStorage.getItem(KEY);if(raw){var d=JSON.parse(raw);if(d&&Array.isArray(d.gardens)){S.gardens=d.gardens;S.view=d.view||'all';return;}}}catch(e){}
+  S.gardens=makeSample();S.view='all';
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({gardens:S.gardens,view:S.view}));}catch(e){}}
+function curGarden(){return S.view==='all'?null:S.gardens.filter(function(g){return g.id===S.view;})[0]||null;}
+function fixView(){if(S.view!=='all'&&!curGarden())S.view='all';}
+function picksOf(g){return g.picks&&g.picks.length?g.picks:ORDER;}
+function kindOf(g,u){return (u.kind&&KINDS[u.kind])?u.kind:picksOf(g)[(u.n||0)%picksOf(g).length];}
+function items(){
+  var out=[],si=0,gs=S.view==='all'?S.gardens:S.gardens.filter(function(g){return g.id===S.view;});
+  gs.forEach(function(g){g.subjects.forEach(function(sub){sub.units.forEach(function(u){out.push({u:u,sub:sub,g:g,si:si,kind:kindOf(g,u)});});si++;});});
+  return out;
+}
+function findUnit(id){var r=null;S.gardens.forEach(function(g){g.subjects.forEach(function(s){s.units.forEach(function(u){if(u.id===id)r={u:u,s:s,g:g};});});});return r;}
+
+/* ---------- toast ---------- */
+var toastT;
+function toast(t){var el=$('#toast');el.textContent=t;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(function(){el.hidden=true;},2600);}
+
+/* ---------- main render ---------- */
+function render(){fixView();renderBanner();renderTabs();renderStage();renderAside();}
+
+function renderBanner(){
+  var b=$('#banner'),has=S.gardens.some(function(g){return g.sample;});
+  if(!has){b.hidden=true;return;}
+  b.hidden=false;
+  b.innerHTML='<span>These gardens hold sample subjects. Import your own sheet or edit the syllabus to replace them.</span><button class="btn small" type="button" data-a="clearsample">Clear sample data</button>';
+}
+function renderTabs(){
+  var t=$('#tabs'),h='';
+  var all=0,alld=0;S.gardens.forEach(function(g){g.subjects.forEach(function(s){s.units.forEach(function(u){all++;if(u.done)alld++;});});});
+  h+='<button class="chip-t all" type="button" data-a="view" data-g="all" aria-current="'+(S.view==='all')+'">All gardens <span class="n">'+alld+'/'+all+'</span></button>';
+  S.gardens.forEach(function(g){var n=0,d=0;g.subjects.forEach(function(s){s.units.forEach(function(u){n++;if(u.done)d++;});});
+    h+='<button class="chip-t" type="button" data-a="view" data-g="'+g.id+'" aria-current="'+(S.view===g.id)+'">'+esc(g.name)+' <span class="n">'+d+'/'+n+'</span></button>';});
+  h+='<button class="chip-t add" type="button" data-a="newgarden">+ New garden</button>';
+  t.innerHTML=h;
+}
+
+var GEO={TW:128,TH:64,D:36};
+function renderStage(){
+  var stage=$('#stage'),its=items(),N=its.length;
+  var cols=Math.max(4,Math.ceil(Math.sqrt(N*1.15))),rows=Math.max(3,Math.ceil(N/cols));
+  var TW=GEO.TW,TH=GEO.TH,D=GEO.D;
+  var g=curGarden();
+  $('#winTitle').textContent='garden.exe · '+(g?g.name:'all gardens');
+  var minX=-rows*TW/2-70,maxX=cols*TW/2+70,minY=-TH/2-150,maxY=(cols+rows-1)*TH/2+D+50;
+  var W=maxX-minX,H=maxY-minY;
+  var Lc=[-rows*TW/2,(rows-1)*TH/2],Bc=[(cols-rows)*TW/2,(cols+rows-1)*TH/2],Rc=[cols*TW/2,(cols-1)*TH/2],Tc=[0,-TH/2];
+  var s='<svg class="plot" viewBox="'+minX+' '+minY+' '+W+' '+H+'" role="group" aria-label="Garden plot">';
+  /* clouds */
+  function cloud(x,y,k){return '<g transform="translate('+x+' '+y+') scale('+k+')" opacity=".85"><ellipse cx="0" cy="0" rx="46" ry="16" fill="#fff"/><circle cx="-14" cy="-10" r="16" fill="#fff"/><circle cx="12" cy="-14" r="20" fill="#fff"/></g>';}
+  s+=cloud(minX+90,minY+70,1)+cloud(maxX-100,minY+120,.8)+cloud(minX+60,maxY-40,.6);
+  /* ground shadow */
+  s+='<ellipse cx="'+((Lc[0]+Rc[0])/2)+'" cy="'+(Bc[1]+D+8)+'" rx="'+((cols+rows)*TW/4)+'" ry="22" fill="var(--blob)" opacity=".18"/>';
+  /* sides */
+  s+='<polygon class="side-l" points="'+Lc[0]+','+Lc[1]+' '+Bc[0]+','+Bc[1]+' '+Bc[0]+','+(Bc[1]+D)+' '+Lc[0]+','+(Lc[1]+D)+'"/>';
+  s+='<polygon class="side-r" points="'+Bc[0]+','+Bc[1]+' '+Rc[0]+','+Rc[1]+' '+Rc[0]+','+(Rc[1]+D)+' '+Bc[0]+','+(Bc[1]+D)+'"/>';
+  s+='<path d="M'+Lc[0]+' '+(Lc[1]+D*0.45)+' L'+Bc[0]+' '+(Bc[1]+D*0.45)+' L'+Rc[0]+' '+(Rc[1]+D*0.45)+'" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="3" stroke-linecap="round"/>';
+  /* tiles */
+  var tiles=[],idx;
+  for(idx=0;idx<cols*rows;idx++){tiles.push({idx:idx,i:idx%cols,j:Math.floor(idx/cols)});}
+  tiles.sort(function(a,b){return (a.i+a.j)-(b.i+b.j)||a.i-b.i;});
+  tiles.forEach(function(t){
+    var cx=(t.i-t.j)*TW/2,cy=(t.i+t.j)*TH/2,it=its[t.idx];
+    var pts=cx+','+(cy-TH/2)+' '+(cx+TW/2)+','+cy+' '+cx+','+(cy+TH/2)+' '+(cx-TW/2)+','+cy;
+    var k=0.72,pp=cx+','+(cy-TH/2*k)+' '+(cx+TW/2*k)+','+cy+' '+cx+','+(cy+TH/2*k)+' '+(cx-TW/2*k)+','+cy;
+    var cls=((t.i+t.j)%2?'g2':'g1');
+    if(!it){
+      var sx=(t.idx*37)%5-2;
+      s+='<g><polygon class="'+cls+' tile-edge" points="'+pts+'"/>'+
+        '<path d="M'+(cx+sx*8-5)+' '+(cy+4)+' q2 -9 5 -12 q1 7 5 12 M'+(cx+sx*8+4)+' '+(cy+4)+' q3 -7 6 -8" fill="none" stroke="#5CCB8B" stroke-width="2.4" stroke-linecap="round" opacity=".8"/></g>';
+      return;
+    }
+    var u=it.u,done=u.done;
+    s+='<g class="tile'+(UI.sel===u.id?' sel':'')+'" data-u="'+u.id+'" tabindex="0" role="button" aria-label="'+esc(u.name+', '+it.sub.name+', '+(done?'bloomed':'not bloomed yet'))+'">';
+    s+='<polygon class="'+cls+' tile-edge" points="'+pts+'"/>';
+    s+='<polygon class="pad" points="'+pp+'" style="fill:var(--t'+(it.si%8+1)+')" stroke="'+OL+'" stroke-width="1.4" stroke-linejoin="round" opacity=".92"/>';
+    s+='<polygon class="hit" points="'+pts+'"/>';
+    var body=done?flowerBody(it.kind):SPROUT;
+    var delay=((t.idx*0.37)%2.4).toFixed(2);
+    s+='<g transform="translate('+cx+' '+(cy+6)+') scale('+(done?1.25:1.1)+')" style="pointer-events:none">'+
+      '<ellipse cx="0" cy="3" rx="20" ry="7" fill="var(--blob)" opacity=".16"/>'+
+      '<g'+(UI.pop===u.id?' class="pop"':'')+'><g'+(done?' class="sway" style="animation-delay:-'+delay+'s"':'')+'>'+body+'</g></g></g>';
+    s+='</g>';
+  });
+  s+='<path class="slab-line" d="M'+Tc[0]+' '+Tc[1]+' L'+Rc[0]+' '+Rc[1]+' L'+Rc[0]+' '+(Rc[1]+D)+' L'+Bc[0]+' '+(Bc[1]+D)+' L'+Lc[0]+' '+(Lc[1]+D)+' L'+Lc[0]+' '+Lc[1]+' Z" style="pointer-events:none"/>';
+  s+='</svg>';
+  var note='';
+  if(!N){note='<div class="empty-note"><b>Nothing planted yet</b>Add your subjects and units, or bring them in from a sheet.<div class="actions"><button class="btn small" type="button" data-a="openedit">Edit syllabus</button><button class="btn small pink" type="button" data-a="openimport">Import sheet</button></div></div>';}
+  stage.innerHTML=s+note+'<div id="bubbleHost"></div>';
+  if(UI.pop){var el=stage.querySelector('[data-u="'+UI.pop+'"]');if(el)burst(el);UI.pop=null;}
+  renderBubble();
+}
+function burst(tileEl){
+  var ns='http://www.w3.org/2000/svg',poly=tileEl.querySelector('polygon');
+  if(!poly)return;
+  var bb=poly.getBBox(),cx=bb.x+bb.width/2,cy=bb.y+bb.height/2-70;
+  var holder=document.createElementNS(ns,'g');holder.setAttribute('transform','translate('+cx+' '+cy+')');holder.style.pointerEvents='none';
+  for(var k=0;k<8;k++){var p=document.createElementNS(ns,'path');p.setAttribute('d','M0 -8 L2.4 -2.4 L8 0 L2.4 2.4 L0 8 L-2.4 2.4 L-8 0 L-2.4 -2.4Z');p.setAttribute('class','spk');
+    var a=k/8*Math.PI*2;p.style.setProperty('--dx',(Math.cos(a)*80).toFixed(0)+'px');p.style.setProperty('--dy',(Math.sin(a)*60).toFixed(0)+'px');holder.appendChild(p);}
+  tileEl.appendChild(holder);setTimeout(function(){if(holder.parentNode)holder.parentNode.removeChild(holder);},1000);
+}
+
+/* ---------- bubble (click a flower) ---------- */
+function renderBubble(){
+  var host=$('#bubbleHost');if(!host)return;
+  if(!UI.sel){host.innerHTML='';return;}
+  var f=findUnit(UI.sel);
+  if(!f||!$('#stage [data-u="'+UI.sel+'"]')){UI.sel=null;host.innerHTML='';return;}
+  var kind=kindOf(f.g,f.u),K=KINDS[kind];
+  var h='<div class="bubble" id="bubble" role="dialog" aria-label="Unit details">'+
+    '<button class="x" type="button" data-a="closebubble" aria-label="Close">×</button>'+
+    '<div class="b-top"><svg class="b-ico" viewBox="-36 -108 72 114" aria-hidden="true">'+(f.u.done?flowerBody(kind):SPROUT)+'</svg>'+
+    '<div style="min-width:0"><div class="b-name">'+esc(f.u.name)+'</div><div class="b-sub">'+esc(f.s.name)+' · '+esc(f.g.name)+'</div></div></div>'+
+    '<span class="pill'+(f.u.done?' on':'')+'">'+(f.u.done?esc(K.l)+' in bloom':'Still a seed')+'</span>'+
+    '<div class="b-actions"><button class="btn small pink" type="button" data-a="togglesel">'+(f.u.done?'Back to seed':'Bloom it')+'</button>'+
+    '<button class="btn small" type="button" data-a="togglepicker" aria-expanded="'+UI.pickerOpen+'">Change flower</button></div>';
+  if(UI.pickerOpen){h+='<div class="picker">';ORDER.forEach(function(k){h+='<button class="pk" type="button" data-a="setkind" data-k="'+k+'" aria-pressed="'+(k===kind)+'" title="'+esc(KINDS[k].l)+'" aria-label="'+esc(KINDS[k].l)+'">'+flowerIcon(k)+'</button>';});h+='</div>';}
+  h+='</div>';
+  host.innerHTML=h;placeBubble();
+}
+function placeBubble(){
+  var b=$('#bubble'),stage=$('#stage');if(!b||!UI.sel)return;
+  var el=stage.querySelector('[data-u="'+UI.sel+'"]');if(!el)return;
+  var r=el.getBoundingClientRect(),w=stage.getBoundingClientRect(),bw=b.offsetWidth,bh=b.offsetHeight;
+  var x=r.left+r.width/2-w.left;x=Math.max(bw/2+8,Math.min(w.width-bw/2-8,x));
+  var top=r.top-w.top-bh-14,below=false;
+  if(top<6){top=r.bottom-w.top+8;below=true;}
+  if(below&&top+bh>w.height-4){top=Math.max(6,w.height-bh-6);}
+  b.style.left=(x-bw/2)+'px';b.style.top=top+'px';
+}
+window.addEventListener('resize',function(){placeBubble();});
+
+/* ---------- aside ---------- */
+var RANKS=['Seedling','Sprout','Budding','Blooming','Full bloom'];
+function renderAside(){
+  var its=items(),N=its.length,done=its.filter(function(x){return x.u.done;}).length;
+  var pct=N?done/N:0,ri=pct>=1?4:pct>=.6?3:pct>=.3?2:pct>0?1:0;
+  var h='<section class="card"><div class="hud-top"><span class="lv">LV '+(1+Math.floor(done/4))+'</span><span class="rank">'+RANKS[ri]+'</span></div>'+
+    '<div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="'+N+'" aria-valuenow="'+done+'"><i style="width:'+Math.round(pct*100)+'%"></i></div>'+
+    '<div class="hud-n"><b>'+done+'</b> of '+N+' flowers in bloom</div></section>';
+  var gs=S.view==='all'?S.gardens:S.gardens.filter(function(g){return g.id===S.view;}),si=0;
+  h+='<div class="subjs">';
+  if(!N&&!gs.some(function(g){return g.subjects.length;}))h+='<p class="none">No subjects yet. Use Edit syllabus or Import sheet to plant some.</p>';
+  gs.forEach(function(g){
+    if(S.view==='all')h+='<h3 class="gh">'+esc(g.name)+'</h3>';
+    g.subjects.forEach(function(sub){
+      var d=sub.units.filter(function(u){return u.done;}).length,open=UI.open[sub.id];
+      h+='<div class="sj'+(open?' open':'')+'"><button class="sj-h" type="button" data-a="tsub" data-s="'+sub.id+'" aria-expanded="'+(!!open)+'">'+
+        '<i class="chip" style="background:var(--t'+(si%8+1)+')"></i><span class="sn">'+esc(sub.name)+'</span><span class="sc">'+d+'/'+sub.units.length+'</span>'+
+        '<span class="mdots">'+sub.units.map(function(u){return '<i class="dot'+(u.done?' on':'')+'" style="--c:'+KINDS[kindOf(g,u)].c+'"></i>';}).join('')+'</span></button>'+
+        '<ul class="us">'+sub.units.map(function(u){return '<li><button class="ur" type="button" data-a="tu" data-u="'+u.id+'" aria-pressed="'+u.done+'"><span class="ck"></span><span>'+esc(u.name)+'</span></button></li>';}).join('')+
+        (sub.units.length?'':'<li class="none">No units yet.</li>')+'</ul></div>';
+      si++;
+    });
+  });
+  h+='</div>';
+  $('#aside').innerHTML=h;
+}
+
+/* ---------- actions ---------- */
+function setDone(id,val){
+  var f=findUnit(id);if(!f)return;
+  f.u.done=val;if(val)UI.pop=id;save();render();
+}
+document.addEventListener('click',function(e){
+  var tile=e.target.closest&&e.target.closest('#stage .tile');
+  if(tile){UI.sel=tile.dataset.u;UI.pickerOpen=false;renderStage();return;}
+  var b=e.target.closest&&e.target.closest('[data-a]');
+  if(!b){
+    if(UI.sel&&e.target.closest('#stage')&&!e.target.closest('#bubble')){UI.sel=null;renderStage();}
+    return;
+  }
+  if(b.closest('#modal'))return;
+  var a=b.dataset.a;
+  if(a==='view'){S.view=b.dataset.g;UI.sel=null;save();render();}
+  else if(a==='newgarden'){var g=newGarden('New garden');S.gardens=S.gardens.filter(function(x){return !x.sample;}).concat([g]);S.view=g.id;save();render();openModal('garden');setTimeout(function(){var i=$('[data-f="gname"]');if(i){i.focus();i.select();}},30);}
+  else if(a==='clearsample'){S.gardens=S.gardens.filter(function(x){return !x.sample;});S.view='all';UI.sel=null;save();render();toast('Sample data cleared');}
+  else if(a==='closebubble'){UI.sel=null;renderStage();}
+  else if(a==='togglesel'){var f=findUnit(UI.sel);if(f)setDone(UI.sel,!f.u.done);}
+  else if(a==='togglepicker'){UI.pickerOpen=!UI.pickerOpen;renderBubble();}
+  else if(a==='setkind'){var f2=findUnit(UI.sel);if(f2){f2.u.kind=b.dataset.k;save();render();}}
+  else if(a==='tsub'){UI.open[b.dataset.s]=!UI.open[b.dataset.s];renderAside();}
+  else if(a==='tu'){var f3=findUnit(b.dataset.u);if(f3)setDone(b.dataset.u,!f3.u.done);}
+  else if(a==='openedit')openModal('garden');
+  else if(a==='openimport')openModal('import');
+});
+document.addEventListener('keydown',function(e){
+  var tile=e.target.closest&&e.target.closest('#stage .tile');
+  if(tile&&(e.key==='Enter'||e.key===' ')){e.preventDefault();UI.sel=tile.dataset.u;UI.pickerOpen=false;renderStage();}
+  if(e.key==='Escape'){if(!$('#modal').hidden)closeModal();else if(UI.sel){UI.sel=null;renderStage();}}
+});
+document.addEventListener('mouseover',function(e){
+  var r=e.target.closest&&e.target.closest('.ur');
+  var old=document.querySelector('#stage .tile.hl');if(old)old.classList.remove('hl');
+  if(r){var t=document.querySelector('#stage .tile[data-u="'+r.dataset.u+'"]');if(t)t.classList.add('hl');}
+});
+$('#bManage').addEventListener('click',function(){openModal('garden');});
+$('#bFlowers').addEventListener('click',function(){openModal('flowers');});
+$('#bImport').addEventListener('click',function(){openModal('import');});
+
+/* ---------- modal ---------- */
+function openModal(tab){UI.tab=tab||UI.tab;$('#modal').hidden=false;renderModal();}
+function closeModal(){$('#modal').hidden=true;UI.imp=null;render();}
+$('#mClose').addEventListener('click',closeModal);
+$('#modal').addEventListener('mousedown',function(e){if(e.target===this)closeModal();});
+var TABS=[['garden','This garden'],['flowers','Flowers'],['import','Import'],['backup','Backup']];
+function renderModal(){
+  var y=$('#mBody').scrollTop;
+  $('#mTitle').textContent='settings.exe';
+  $('#mTabs').innerHTML=TABS.map(function(t){return '<button class="mt" type="button" role="tab" data-a="tab" data-t="'+t[0]+'" aria-selected="'+(UI.tab===t[0])+'">'+t[1]+'</button>';}).join('');
+  var g=curGarden(),h='';
+  if(UI.tab==='garden')h=g?tabGarden(g):pickGarden('Pick one garden to edit its subjects and units. The All view is a read-only mix of every garden.');
+  else if(UI.tab==='flowers')h=g?tabFlowers(g):pickGarden('Flowers are chosen per garden. Pick a garden first.');
+  else if(UI.tab==='import')h=tabImport();
+  else h=tabBackup();
+  $('#mBody').innerHTML=h;$('#mBody').scrollTop=y;
+}
+function pickGarden(msg){
+  var h='<p>'+msg+'</p><div class="actions">';
+  S.gardens.forEach(function(g){h+='<button class="btn small" type="button" data-a="goto" data-g="'+g.id+'">'+esc(g.name)+'</button>';});
+  return h+'<button class="btn small pink" type="button" data-a="mnew">+ New garden</button></div>';
+}
+function tabGarden(g){
+  var h='<label class="field">Garden name<input type="text" id="gname" data-f="gname" value="'+esc(g.name)+'"></label><h3>Subjects and units</h3>';
+  if(!g.subjects.length)h+='<p>No subjects yet. Add the first one below.</p>';
+  g.subjects.forEach(function(s){
+    h+='<div class="sjm" data-s="'+s.id+'"><div class="row"><input type="text" data-f="sname" value="'+esc(s.name)+'" aria-label="Subject name"><button class="btn small danger" type="button" data-a="delsub">Remove</button></div>';
+    s.units.forEach(function(u){h+='<div class="row" data-u="'+u.id+'"><input type="text" data-f="uname" value="'+esc(u.name)+'" aria-label="Unit name"><button class="btn small danger" type="button" data-a="delunit" aria-label="Remove unit">×</button></div>';});
+    h+='<div class="row"><input type="text" data-f="newunit" placeholder="Add a unit and press Enter" aria-label="New unit name"></div></div>';
+  });
+  h+='<h3>Add a subject</h3><div class="addrow"><label class="field">Subject name<input type="text" id="nsName" placeholder="e.g. Organic chemistry"></label><label class="field">Units<input type="number" id="nsCount" min="0" max="40" value="4"></label></div>'+
+    '<label class="field">Unit names, one per line (optional)<textarea id="nsUnits" placeholder="Leave empty to create Unit 1, Unit 2 and so on"></textarea></label>'+
+    '<div class="actions"><button class="btn pink" type="button" data-a="addsub">Add subject</button></div>'+
+    '<h3>Danger zone</h3><div class="actions"><button class="btn danger" type="button" data-a="delgarden">Delete this garden</button></div>';
+  return h;
+}
+function tabFlowers(g){
+  var p=picksOf(g),h='<p>Choose which flowers this garden grows. Units use them in turn. You can still change any single flower by tapping it in the garden.</p><div class="actions">'+
+    '<button class="btn small" type="button" data-a="pickall">Select all</button><button class="btn small" type="button" data-a="picktulips">Tulips only</button><button class="btn small" type="button" data-a="resetflowers">Clear single-flower overrides</button></div><div class="fgrid">';
+  ORDER.forEach(function(k){h+='<button class="fk" type="button" data-a="pick" data-k="'+k+'" aria-pressed="'+(p.indexOf(k)>=0)+'">'+flowerIcon(k)+'<div>'+esc(KINDS[k].l)+'</div></button>';});
+  return h+'</div><p>'+p.length+' selected</p>';
+}
+var TEMPLATE='Garden\tSubject\tUnit\tDone\n'+'First degree\tCalculus\tLimits and continuity\tyes\n'+'First degree\tCalculus\tDifferentiation\t\n'+'Second degree\tContract law\tFormation\t\n';
+function tabImport(){
+  var imp=UI.imp,h='<p>Bring in your syllabus from a spreadsheet. Excel and CSV files work. For Google Sheets, select your cells, copy them, and paste below, or download the sheet as CSV or Excel first.</p>'+
+    '<h3>Columns</h3><div class="tbl"><table><tr><th>Garden</th><th>Subject</th><th>Unit</th><th>Done</th><th>Flower</th></tr><tr><td>First degree</td><td>Calculus</td><td>Limits and continuity</td><td>yes</td><td>Pink tulip</td></tr><tr><td></td><td></td><td>Differentiation</td><td></td><td></td></tr></table></div>'+
+    '<p>Keep the header row. Garden, Done and Flower are optional. Blank Garden or Subject cells repeat the one above. Without a Garden column, each sheet in an Excel file becomes its own garden.</p>'+
+    '<div class="actions"><label class="btn pink filebtn" for="impFile">Choose a file<input type="file" id="impFile" accept=".xlsx,.xls,.csv,.tsv,.txt"></label><button class="btn" type="button" data-a="copytemplate">Copy a template</button></div>'+
+    '<label class="field">Or paste cells here<textarea id="impText" placeholder="Garden, Subject, Unit, Done"></textarea></label>'+
+    '<div class="actions"><button class="btn" type="button" data-a="parsepaste">Read pasted cells</button></div>';
+  if(imp){
+    if(imp.err)h+='<div class="msg warn">'+esc(imp.err)+'</div>';
+    else{
+      var ng=imp.gardens.length,ns=0,nu=0;imp.gardens.forEach(function(g){ns+=g.subjects.length;g.subjects.forEach(function(s){nu+=s.units.length;});});
+      h+='<div class="msg">Found '+nu+' units in '+ns+' subjects across '+ng+' garden'+(ng===1?'':'s')+'.</div>';
+      h+='<ul>'+imp.gardens.map(function(g){var c=0;g.subjects.forEach(function(s){c+=s.units.length;});return '<li>'+esc(g.name)+': '+g.subjects.length+' subjects, '+c+' units</li>';}).join('')+'</ul>';
+      h+='<div class="actions"><button class="btn pink" type="button" data-a="doimport">Add to my gardens</button><button class="btn danger" type="button" data-a="doreplace">Replace everything</button></div>';
+    }
+  }
+  return h;
+}
+function tabBackup(){
+  var json=JSON.stringify({gardens:S.gardens.map(function(g){var c={};for(var k in g)if(k!=='sample')c[k]=g[k];return c;})});
+  return '<p>Your gardens live in this browser. Copy the backup text and keep it somewhere safe, or paste a backup here to restore it on another device.</p>'+
+    '<label class="field">Backup text<textarea id="bkOut" readonly>'+esc(json)+'</textarea></label>'+
+    '<div class="actions"><button class="btn pink" type="button" data-a="copyjson">Copy backup</button></div>'+
+    '<label class="field">Restore from backup<textarea id="bkIn" placeholder="Paste backup text here"></textarea></label>'+
+    '<div class="actions"><button class="btn" type="button" data-a="restore">Restore</button></div><div id="bkMsg"></div>';
+}
+function armTwice(btn,key){
+  if(UI.armed===key){UI.armed=null;return true;}
+  UI.armed=key;btn.dataset.old=btn.textContent;btn.textContent='Tap again to confirm';
+  setTimeout(function(){if(UI.armed===key){UI.armed=null;btn.textContent=btn.dataset.old;}},3000);return false;
+}
+function copyText(text,ta){
+  function fallback(){if(ta){ta.focus();ta.select();}toast('Select the text and press Ctrl or Cmd + C');}
+  try{navigator.clipboard.writeText(text).then(function(){toast('Copied');},fallback);}catch(e){fallback();}
+}
+function refreshModal(focusSel){renderModal();if(focusSel){var i=$(focusSel);if(i)i.focus();}}
+
+$('#mBody').addEventListener('click',function(e){
+  var b=e.target.closest('[data-a]');if(!b)return;
+  var a=b.dataset.a,g=curGarden();
+  var sEl=b.closest('[data-s]'),uEl=b.closest('[data-u]'),sid=sEl&&sEl.dataset.s;
+  if(a==='tab'){UI.tab=b.dataset.t;renderModal();}
+  else if(a==='goto'){S.view=b.dataset.g;save();renderModal();render();}
+  else if(a==='mnew'){var ng=newGarden('New garden');S.gardens=S.gardens.filter(function(x){return !x.sample;}).concat([ng]);S.view=ng.id;UI.tab='garden';save();render();renderModal();}
+  else if(a==='addsub'&&g){
+    var name=$('#nsName').value.trim();if(!name){toast('Give the subject a name');$('#nsName').focus();return;}
+    var lines=$('#nsUnits').value.split('\n').map(function(x){return x.trim();}).filter(Boolean);
+    var cnt=Math.max(0,Math.min(40,parseInt($('#nsCount').value,10)||0));
+    if(!lines.length)for(var i=1;i<=cnt;i++)lines.push('Unit '+i);
+    var s={id:uid(),name:name,units:[]};g.subjects.push(s);lines.forEach(function(l){addUnit(g,s,l,false);});
+    g.sample=false;save();render();refreshModal('#nsName');toast('Planted '+name);
+  }
+  else if(a==='delsub'&&g){if(!armTwice(b,'s'+sid))return;g.subjects=g.subjects.filter(function(s){return s.id!==sid;});save();render();refreshModal();}
+  else if(a==='delunit'&&g){var uid2=uEl.dataset.u;g.subjects.forEach(function(s){s.units=s.units.filter(function(u){return u.id!==uid2;});});save();render();refreshModal();}
+  else if(a==='delgarden'&&g){if(!armTwice(b,'g'+g.id))return;S.gardens=S.gardens.filter(function(x){return x.id!==g.id;});S.view='all';save();render();refreshModal();}
+  else if(a==='pick'&&g){var k=b.dataset.k,p=picksOf(g).slice(),ix=p.indexOf(k);if(ix>=0){if(p.length===1){toast('Keep at least one flower');return;}p.splice(ix,1);}else p.push(k);g.picks=ORDER.filter(function(x){return p.indexOf(x)>=0;});save();render();refreshModal();}
+  else if(a==='pickall'&&g){g.picks=ORDER.slice();save();render();refreshModal();}
+  else if(a==='picktulips'&&g){g.picks=TULIPS.slice();save();render();refreshModal();}
+  else if(a==='resetflowers'&&g){g.subjects.forEach(function(s){s.units.forEach(function(u){u.kind=null;});});save();render();toast('Flowers follow the garden again');}
+  else if(a==='copytemplate'){copyText(TEMPLATE,null);}
+  else if(a==='parsepaste'){var t=$('#impText').value;if(!t.trim()){toast('Paste some cells first');return;}UI.imp=buildImport([{name:'My garden',rows:parseDelimited(t)}]);refreshModal();}
+  else if(a==='doimport'||a==='doreplace'){if(a==='doreplace'&&!armTwice(b,'rep'))return;applyImport(UI.imp.gardens,a==='doreplace');}
+  else if(a==='copyjson'){copyText($('#bkOut').value,$('#bkOut'));}
+  else if(a==='restore'){
+    var m=$('#bkMsg');
+    try{var d=JSON.parse($('#bkIn').value);if(!d||!Array.isArray(d.gardens))throw new Error('x');
+      S.gardens=d.gardens.map(function(g2){g2.id=g2.id||uid();g2.picks=(g2.picks||ORDER).filter(function(k){return KINDS[k];});g2.seq=g2.seq||0;g2.subjects=g2.subjects||[];return g2;});
+      S.view='all';save();render();m.innerHTML='<div class="msg">Backup restored.</div>';}
+    catch(err){m.innerHTML='<div class="msg warn">That text is not a Study Bloom backup. Copy it again from the Backup tab.</div>';}
+  }
+});
+$('#mBody').addEventListener('change',function(e){
+  var t=e.target,g=curGarden();
+  if(t.id==='impFile'){handleFiles(t.files);return;}
+  if(!g||!t.dataset.f)return;
+  var v=t.value.trim();
+  if(t.dataset.f==='gname'){g.name=v||'Untitled garden';g.sample=false;}
+  else if(t.dataset.f==='sname'){var s=g.subjects.filter(function(x){return x.id===t.closest('[data-s]').dataset.s;})[0];if(s)s.name=v||'Subject';}
+  else if(t.dataset.f==='uname'){var f=findUnit(t.closest('[data-u]').dataset.u);if(f)f.u.name=v||'Unit';}
+  else return;
+  save();render();
+});
+$('#mBody').addEventListener('keydown',function(e){
+  var t=e.target,g=curGarden();
+  if(e.key==='Enter'&&t.dataset&&t.dataset.f==='newunit'&&g){
+    var v=t.value.trim();if(!v)return;
+    var sid=t.closest('[data-s]').dataset.s,s=g.subjects.filter(function(x){return x.id===sid;})[0];
+    if(s){addUnit(g,s,v,false);g.sample=false;save();render();renderModal();var i=$('[data-s="'+sid+'"] [data-f="newunit"]');if(i)i.focus();}
+  }
+});
+
+/* ---------- import ---------- */
+var DONE=/^(1|y|yes|true|done|x|✓|✔|complete|completed|finished|bloom|bloomed)$/i;
+function parseDelimited(text){
+  var first=text.split('\n')[0],d=first.indexOf('\t')>=0?'\t':(first.split(';').length>first.split(',').length?';':',');
+  var rows=[],row=[],cur='',q=false,i,c;
+  for(i=0;i<text.length;i++){c=text[i];
+    if(q){if(c==='"'){if(text[i+1]==='"'){cur+='"';i++;}else q=false;}else cur+=c;}
+    else if(c==='"')q=true;
+    else if(c===d){row.push(cur);cur='';}
+    else if(c==='\n'||c==='\r'){if(c==='\r'&&text[i+1]==='\n')i++;row.push(cur);rows.push(row);row=[];cur='';}
+    else cur+=c;}
+  row.push(cur);rows.push(row);return rows;
+}
+function matchKind(v){
+  var n=String(v||'').toLowerCase().replace(/[^a-z]/g,'');if(!n)return null;
+  var ks=Object.keys(KINDS),i;
+  for(i=0;i<ks.length;i++){if(ks[i].toLowerCase()===n||KINDS[ks[i]].l.toLowerCase().replace(/[^a-z]/g,'')===n)return ks[i];}
+  for(i=0;i<ks.length;i++){if(KINDS[ks[i]].f===n||KINDS[ks[i]].f+'s'===n)return ks[i];}
+  return null;
+}
+function toRows(table,defG){
+  var t=table.map(function(r){return r.map(function(c){return String(c==null?'':c).trim();});}).filter(function(r){return r.some(function(c){return c;});});
+  if(!t.length)return [];
+  var gi=-1,si=0,ui=1,di=-1,fi=-1,start=0,h=t[0].map(function(c){return c.toLowerCase();});
+  function find(re){for(var i=0;i<h.length;i++)if(re.test(h[i]))return i;return -1;}
+  var hs=find(/subject|module|paper|course/),hu=find(/unit|topic|chapter|lesson/);
+  if(hs>=0&&hu>=0&&hs!==hu){si=hs;ui=hu;gi=find(/garden|degree|program|plot/);di=find(/done|status|complete|finish|bloom/);fi=find(/flower/);start=1;if(gi===si||gi===ui)gi=-1;}
+  else if(t[0].length>=3){gi=0;si=1;ui=2;di=3;fi=4;}
+  var lg=defG,ls='',out=[];
+  for(var r=start;r<t.length;r++){var row=t[r];
+    if(gi>=0&&row[gi])lg=row[gi];if(row[si])ls=row[si];
+    var u=row[ui];if(!u)continue;
+    var dv=di>=0?row[di]:'';
+    out.push({g:lg,s:ls||'Subject',u:u,done:dv?DONE.test(dv):undefined,kind:fi>=0?matchKind(row[fi]):null});}
+  return out;
+}
+function buildImport(sources){
+  var rows=[];sources.forEach(function(src){rows=rows.concat(toRows(src.rows,src.name));});
+  if(!rows.length)return {err:'No units found. Check that the sheet has a header row with Subject and Unit columns.'};
+  var gs=[];
+  rows.forEach(function(r){
+    var g=gs.filter(function(x){return x.name.toLowerCase()===r.g.toLowerCase();})[0];if(!g){g={name:r.g,subjects:[]};gs.push(g);}
+    var s=g.subjects.filter(function(x){return x.name.toLowerCase()===r.s.toLowerCase();})[0];if(!s){s={name:r.s,units:[]};g.subjects.push(s);}
+    s.units.push({name:r.u,done:r.done,kind:r.kind});
+  });
+  return {gardens:gs};
+}
+function handleFiles(files){
+  if(!files||!files.length)return;
+  var f=files[0],ext=(f.name.split('.').pop()||'').toLowerCase(),base=f.name.replace(/\.[^.]+$/,''),rd=new FileReader();
+  function fail(m){UI.imp={err:m};refreshModal();}
+  if(ext==='csv'||ext==='tsv'||ext==='txt'){
+    rd.onload=function(){UI.imp=buildImport([{name:base,rows:parseDelimited(String(rd.result))}]);refreshModal();};
+    rd.onerror=function(){fail('That file could not be read.');};rd.readAsText(f);
+  }else{
+    if(!window.XLSX){fail('Excel reading is not available right now. Save the sheet as CSV and choose that file instead.');return;}
+    rd.onload=function(){
+      try{var wb=XLSX.read(rd.result,{type:'array'}),src=wb.SheetNames.map(function(n){
+        return {name:wb.SheetNames.length>1?n:base,rows:XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,raw:false,defval:''})};});
+        UI.imp=buildImport(src);refreshModal();}
+      catch(err){fail('That Excel file could not be read. Try saving it as CSV.');}
+    };
+    rd.onerror=function(){fail('That file could not be read.');};rd.readAsArrayBuffer(f);
+  }
+}
+function applyImport(list,replace){
+  if(replace)S.gardens=[];else S.gardens=S.gardens.filter(function(g){return !g.sample;});
+  var touched=[],nu=0;
+  list.forEach(function(ig){
+    var g=S.gardens.filter(function(x){return x.name.toLowerCase()===ig.name.toLowerCase();})[0];
+    if(!g){g=newGarden(ig.name);S.gardens.push(g);}
+    if(touched.indexOf(g.id)<0)touched.push(g.id);
+    ig.subjects.forEach(function(is){
+      var s=g.subjects.filter(function(x){return x.name.toLowerCase()===is.name.toLowerCase();})[0];
+      if(!s){s={id:uid(),name:is.name,units:[]};g.subjects.push(s);}
+      is.units.forEach(function(iu){
+        var u=s.units.filter(function(x){return x.name.toLowerCase()===iu.name.toLowerCase();})[0];
+        if(!u){u=addUnit(g,s,iu.name,!!iu.done,iu.kind);nu++;}
+        else{if(iu.done!==undefined)u.done=iu.done;if(iu.kind)u.kind=iu.kind;}
+      });
+    });
+  });
+  S.view=touched.length===1?touched[0]:'all';UI.imp=null;UI.sel=null;save();render();renderModal();toast('Planted '+nu+' new units');
+}
+
+load();render();
+})();
+</script>
+
+</body></html>
