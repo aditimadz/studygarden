@@ -308,8 +308,6 @@ body.ro .actions,body.ro .tg,body.ro .chip-t.add,body.ro .b-actions{display:none
 <div class="toast" id="toast" hidden></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="config.js"></script>
 <script>
 (function(){
 'use strict';
@@ -838,11 +836,18 @@ function tabImport(){
 }
 function tabBackup(){
   var json=JSON.stringify({gardens:S.gardens.map(function(g){var c={};for(var k in g)if(k!=='sample')c[k]=g[k];return c;})});
-  return '<p>Your gardens are saved in this browser only. Copy the backup text and keep it somewhere safe, or paste a backup here to restore it on another device.</p>'+
+  return '<p>Your garden saves by itself in this browser, on this device. If you clear your browser data or switch device, it will not come with you. Download a backup file now and then, and load it again to get everything back.</p>'+
     '<label class="field">Backup text<textarea id="bkOut" readonly>'+esc(json)+'</textarea></label>'+
-    '<div class="actions"><button class="btn pink" type="button" data-a="copyjson">Copy backup</button></div>'+
+    '<div class="actions"><button class="btn pink" type="button" data-a="dlbackup">Download backup file</button><button class="btn" type="button" data-a="copyjson">Copy backup text</button><label class="btn filebtn" for="bkFile">Load backup file<input type="file" id="bkFile" accept=".json,.txt"></label></div>'+
     '<label class="field">Restore from backup<textarea id="bkIn" placeholder="Paste backup text here"></textarea></label>'+
     '<div class="actions"><button class="btn" type="button" data-a="restore">Restore</button></div><div id="bkMsg"></div>';
+}
+function restoreFrom(text){
+  var m=$('#bkMsg');
+  try{var d=JSON.parse(text);if(!d||!Array.isArray(d.gardens))throw new Error('x');
+    S.gardens=d.gardens.map(function(g2){g2.id=g2.id||uid();g2.picks=(g2.picks||ORDER).filter(function(k){return KINDS[k];});g2.seq=g2.seq||0;g2.subjects=g2.subjects||[];return g2;});
+    S.view='all';save();render();m.innerHTML='<div class="msg">Backup loaded. Your garden is back.</div>';}
+  catch(err){m.innerHTML='<div class="msg warn">That file is not a Little Study Garden backup.</div>';}
 }
 function armTwice(btn,key){
   if(UI.armed===key){UI.armed=null;return true;}
@@ -855,6 +860,7 @@ function copyText(text,ta){
 }
 function refreshModal(focusSel){renderModal();if(focusSel){var i=$(focusSel);if(i)i.focus();}}
 
+$('#mTabs').addEventListener('click',function(e){var b=e.target.closest('[data-a="tab"]');if(b){UI.tab=b.dataset.t;renderModal();}});
 $('#mBody').addEventListener('click',function(e){
   var b=e.target.closest('[data-a]');if(!b)return;
   var a=b.dataset.a,g=curGarden();
@@ -887,17 +893,17 @@ $('#mBody').addEventListener('click',function(e){
       if(r&&r.error){toast('Could not turn off the link. Try again.');return;}R.token=null;renderModal();toast('Link turned off');});}
   else if(a==='copyshare'){copyText(shareUrl(),$('#shareUrl'));}
   else if(a==='copyjson'){copyText($('#bkOut').value,$('#bkOut'));}
-  else if(a==='restore'){
-    var m=$('#bkMsg');
-    try{var d=JSON.parse($('#bkIn').value);if(!d||!Array.isArray(d.gardens))throw new Error('x');
-      S.gardens=d.gardens.map(function(g2){g2.id=g2.id||uid();g2.picks=(g2.picks||ORDER).filter(function(k){return KINDS[k];});g2.seq=g2.seq||0;g2.subjects=g2.subjects||[];return g2;});
-      S.view='all';save();render();m.innerHTML='<div class="msg">Backup restored.</div>';}
-    catch(err){m.innerHTML='<div class="msg warn">That text is not a Little Study Garden backup. Copy it again from the Backup tab.</div>';}
+  else if(a==='dlbackup'){
+    try{var blob=new Blob([$('#bkOut').value],{type:'application/json'}),url=URL.createObjectURL(blob),an=document.createElement('a');
+      an.href=url;an.download='little-study-garden-backup-'+ymd(new Date())+'.json';document.body.appendChild(an);an.click();document.body.removeChild(an);setTimeout(function(){URL.revokeObjectURL(url);},1500);toast('Backup downloaded');}
+    catch(err){toast('Could not download. Use Copy backup text instead.');}
   }
+  else if(a==='restore'){restoreFrom($('#bkIn').value);}
 });
 $('#mBody').addEventListener('change',function(e){
   var t=e.target,g=curGarden();
   if(t.id==='impFile'){handleFiles(t.files);return;}
+  if(t.id==='bkFile'){var bf=t.files&&t.files[0];if(!bf)return;var fr=new FileReader();fr.onload=function(){restoreFrom(String(fr.result));};fr.readAsText(bf);return;}
   if(!g||!t.dataset.f)return;
   var v=t.value.trim();
   if(t.dataset.f==='gname'){g.name=v||'Untitled garden';g.sample=false;}
@@ -1120,6 +1126,7 @@ $('#aBody').addEventListener('submit',function(e){
   p.then(function(){go.disabled=false;},function(){go.disabled=false;amsg('Could not reach the server. Check your connection.');});
 });
 
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
 if(!getShareQ()||!cfg())load();
 render();initCloud();
 })();
